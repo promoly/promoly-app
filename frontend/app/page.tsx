@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -13,6 +14,15 @@ import {
 
 export default function LandingPage() {
   const [email, setEmail] = useState("");
+  const router = useRouter();
+
+  // Redirect to dashboard if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const features = [
     {
