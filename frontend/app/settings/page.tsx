@@ -13,8 +13,13 @@ import {
   Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { metaAPI, authAPI } from "@/lib/api";
-import { MetaAccount, User as UserType } from "@/types";
+import {
+  useGetProfileQuery,
+  useGetMetaAccountsQuery,
+  useConnectMetaAccountMutation,
+} from "@/lib/api";
+import { useAppDispatch } from "@/lib/hooks";
+import { addNotification } from "@/lib/slices/uiSlice";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -38,29 +43,15 @@ const itemVariants = {
 };
 
 export default function SettingsPage() {
-  const [user, setUser] = useState<UserType | null>(null);
-  const [metaAccounts, setMetaAccounts] = useState<MetaAccount[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState("profile");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [userRes, accountsRes] = await Promise.all([
-          authAPI.getProfile(),
-          metaAPI.getAccounts(),
-        ]);
-        setUser(userRes.data);
-        setMetaAccounts(accountsRes.data);
-      } catch (error) {
-        console.error("Error fetching settings data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: user, isLoading: userLoading } = useGetProfileQuery();
+  const { data: metaAccounts = [], isLoading: accountsLoading } =
+    useGetMetaAccountsQuery();
+  const [connectMetaAccount] = useConnectMetaAccountMutation();
 
-    fetchData();
-  }, []);
+  const loading = userLoading || accountsLoading;
 
   const tabs = [
     { id: "profile", name: "Profile", icon: User },

@@ -13,8 +13,31 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { aiAPI } from "@/lib/api";
-import { ChatMessage, Suggestion } from "@/types";
+import { useChatCompletionMutation } from "@/lib/api";
+import { useAppDispatch } from "@/lib/hooks";
+import { addNotification } from "@/lib/slices/uiSlice";
+
+interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: string;
+  metadata?: {
+    suggestions?: string[];
+  };
+}
+
+interface Suggestion {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  priority: string;
+  estimatedImpact: {
+    value: number;
+    unit: string;
+  };
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -72,6 +95,7 @@ const quickActions = [
 ];
 
 export default function ChatPage() {
+  const dispatch = useAppDispatch();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "1",
@@ -82,10 +106,11 @@ export default function ChatPage() {
     },
   ]);
   const [inputValue, setInputValue] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const [chatCompletion, { isLoading }] = useChatCompletionMutation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -107,28 +132,39 @@ export default function ChatPage() {
 
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
-    setIsLoading(true);
 
     try {
-      const response = await aiAPI.chatCompletion(content.trim());
+      const result = await chatCompletion({
+        message: content.trim(),
+        history: messages.map((m) => ({ role: m.role, content: m.content })),
+      }).unwrap();
 
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response.data.response,
+        content: result.response,
         timestamp: new Date().toISOString(),
         metadata: {
-          suggestions: response.data.suggestions?.map((s) => s.id),
+          suggestions: result.suggestions?.map((s: any) => s.id),
         },
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      if (response.data.suggestions) {
-        setSuggestions(response.data.suggestions);
+      if (result.suggestions) {
+        setSuggestions(result.suggestions);
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      dispatch(
+        addNotification({
+          type: "error",
+          title: "Chat Error",
+          message: "Failed to send message. Please try again.",
+          duration: 5000,
+        })
+      );
+
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -137,8 +173,6 @@ export default function ChatPage() {
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
     }
   };
 

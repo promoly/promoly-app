@@ -17,6 +17,9 @@ import {
   Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAppSelector, useAppDispatch } from "@/lib/hooks";
+import { logout } from "@/lib/slices/authSlice";
+import { addNotification } from "@/lib/slices/uiSlice";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -29,9 +32,19 @@ export default function Navigation() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state) => state.auth);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    dispatch(logout());
+    dispatch(
+      addNotification({
+        type: "success",
+        title: "Logged out",
+        message: "You have been successfully logged out.",
+        duration: 3000,
+      })
+    );
     router.push("/login");
   };
 
@@ -196,7 +209,7 @@ export default function Navigation() {
                 <User className="w-4 h-4 text-gray-600" />
               </div>
               <span className="hidden lg:block text-sm font-medium text-gray-900">
-                John Doe
+                {user?.name || "User"}
               </span>
             </div>
           </div>

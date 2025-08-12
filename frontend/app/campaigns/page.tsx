@@ -19,8 +19,13 @@ import {
   Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { campaignsAPI } from "@/lib/api";
-import { Campaign, CampaignPerformance } from "@/types";
+import {
+  useGetCampaignsQuery,
+  useDeleteCampaignMutation,
+  useGetCampaignPerformanceQuery,
+} from "@/lib/api";
+import { useAppDispatch } from "@/lib/hooks";
+import { addNotification } from "@/lib/slices/uiSlice";
 import {
   formatCurrency,
   formatNumber,
@@ -50,27 +55,14 @@ const itemVariants = {
 };
 
 export default function CampaignsPage() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
-  useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const response = await campaignsAPI.getCampaigns();
-        setCampaigns(response.data);
-      } catch (error) {
-        console.error("Error fetching campaigns:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: campaigns = [], isLoading } = useGetCampaignsQuery();
+  const [deleteCampaign] = useDeleteCampaignMutation();
 
-    fetchCampaigns();
-  }, []);
-
-  const filteredCampaigns = campaigns.filter((campaign) => {
+  const filteredCampaigns = campaigns.filter((campaign: any) => {
     const matchesSearch = campaign.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
@@ -105,7 +97,7 @@ export default function CampaignsPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>

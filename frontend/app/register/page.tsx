@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { authAPI } from "@/lib/api";
+import { useRegisterMutation } from "@/lib/api";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { setCredentials } from "@/lib/slices/authSlice";
+import { addNotification } from "@/lib/slices/uiSlice";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -14,39 +17,53 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  const [register, { isLoading }] = useRegisterMutation();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    if (isAuthenticated) {
       router.push("/dashboard");
     }
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
-      setLoading(false);
       return;
     }
 
     try {
-      const response = await authAPI.register({ name, email, password });
-      localStorage.setItem("token", response.data.token);
-      router.push("/dashboard");
-    } catch (error: any) {
-      setError(
-        error.response?.data?.message ||
-          "Registration failed. Please try again."
+      const result = await register({ name, email, password }).unwrap();
+      dispatch(setCredentials(result));
+      dispatch(
+        addNotification({
+          type: "success",
+          title: "Account created!",
+          message:
+            "Welcome to Promoly! Your account has been created successfully.",
+          duration: 3000,
+        })
       );
-    } finally {
-      setLoading(false);
+      router.push("/dashboard");
+    } catch (err: any) {
+      const errorMessage =
+        err.data?.message || "Registration failed. Please try again.";
+      setError(errorMessage);
+      dispatch(
+        addNotification({
+          type: "error",
+          title: "Registration failed",
+          message: errorMessage,
+          duration: 5000,
+        })
+      );
     }
   };
 
@@ -186,10 +203,10 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-3"
             >
-              {loading ? "Creating account..." : "Create account"}
+              {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </form>
 

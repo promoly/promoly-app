@@ -1,215 +1,199 @@
-import axios from "axios";
-import {
-  ApiResponse,
-  PaginatedResponse,
-  User,
-  Campaign,
-  CampaignPerformance,
-  Suggestion,
-  MetaAccount,
-  DashboardStats,
-} from "@/types";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Request interceptor to add auth token
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Response interceptor to handle errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+// Define base query with authentication
+const baseQuery = fetchBaseQuery({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001",
+  prepareHeaders: (headers, { getState }) => {
+    // Get token from localStorage for client-side requests
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        headers.set("authorization", `Bearer ${token}`);
+      }
     }
-    return Promise.reject(error);
-  }
-);
-
-// Auth API
-export const authAPI = {
-  register: async (data: { email: string; password: string; name: string }) => {
-    const response = await api.post<ApiResponse<{ user: User; token: string }>>(
-      "/auth/register",
-      data
-    );
-    return response.data;
+    return headers;
   },
+});
 
-  login: async (data: { email: string; password: string }) => {
-    const response = await api.post<ApiResponse<{ user: User; token: string }>>(
-      "/auth/login",
-      data
-    );
-    return response.data;
-  },
+// Create the API slice
+export const api = createApi({
+  reducerPath: "api",
+  baseQuery,
+  tagTypes: ["User", "Campaign", "MetaAccount", "Suggestion", "Performance"],
+  endpoints: (builder) => ({
+    // Auth endpoints
+    login: builder.mutation<
+      { token: string; user: any },
+      { email: string; password: string }
+    >({
+      query: (credentials) => ({
+        url: "/auth/login",
+        method: "POST",
+        body: credentials,
+      }),
+    }),
+    register: builder.mutation<
+      { token: string; user: any },
+      { name: string; email: string; password: string }
+    >({
+      query: (userData) => ({
+        url: "/auth/register",
+        method: "POST",
+        body: userData,
+      }),
+    }),
+    getProfile: builder.query<any, void>({
+      query: () => "/users/me",
+      providesTags: ["User"],
+    }),
 
-  getProfile: async () => {
-    const response = await api.get<ApiResponse<User>>("/users/me");
-    return response.data;
-  },
-};
+    // Campaign endpoints
+    getCampaigns: builder.query<any[], void>({
+      query: () => "/campaigns",
+      providesTags: ["Campaign"],
+    }),
+    getCampaign: builder.query<any, string>({
+      query: (id) => `/campaigns/${id}`,
+      providesTags: (result, error, id) => [{ type: "Campaign", id }],
+    }),
+    createCampaign: builder.mutation<any, any>({
+      query: (campaign) => ({
+        url: "/campaigns",
+        method: "POST",
+        body: campaign,
+      }),
+      invalidatesTags: ["Campaign"],
+    }),
+    updateCampaign: builder.mutation<any, { id: string; data: any }>({
+      query: ({ id, data }) => ({
+        url: `/campaigns/${id}`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: (result, error, { id }) => [{ type: "Campaign", id }],
+    }),
+    deleteCampaign: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/campaigns/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Campaign"],
+    }),
+    getCampaignPerformance: builder.query<any, string>({
+      query: (id) => `/campaigns/${id}/performance`,
+      providesTags: (result, error, id) => [{ type: "Performance", id }],
+    }),
 
-// Campaigns API
-export const campaignsAPI = {
-  getCampaigns: async (page = 1, limit = 10) => {
-    const response = await api.get<PaginatedResponse<Campaign>>(
-      `/campaigns?page=${page}&limit=${limit}`
-    );
-    return response.data;
-  },
+    // Meta Ads integration endpoints
+    getMetaAccounts: builder.query<any[], void>({
+      query: () => "/meta/accounts",
+      providesTags: ["MetaAccount"],
+    }),
+    connectMetaAccount: builder.mutation<
+      any,
+      { adAccountId: string; accessToken: string }
+    >({
+      query: (accountData) => ({
+        url: "/meta/connect",
+        method: "POST",
+        body: accountData,
+      }),
+      invalidatesTags: ["MetaAccount"],
+    }),
 
-  getCampaign: async (id: string) => {
-    const response = await api.get<ApiResponse<Campaign>>(`/campaigns/${id}`);
-    return response.data;
-  },
+    // AI endpoints
+    generateAdCopy: builder.mutation<any, { prompt: string; context?: any }>({
+      query: (data) => ({
+        url: "/ai/generate",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getOptimizationSuggestions: builder.mutation<
+      any,
+      { campaignId: string; performanceData?: any }
+    >({
+      query: (data) => ({
+        url: "/ai/suggest",
+        method: "POST",
+        body: data,
+      }),
+    }),
+    chatCompletion: builder.mutation<any, { message: string; history?: any[] }>(
+      {
+        query: (data) => ({
+          url: "/ai/chat",
+          method: "POST",
+          body: data,
+        }),
+      }
+    ),
+    ragQuery: builder.mutation<any, { query: string }>({
+      query: (data) => ({
+        url: "/ai/rag/query",
+        method: "POST",
+        body: data,
+      }),
+    }),
 
-  createCampaign: async (data: any) => {
-    const response = await api.post<ApiResponse<Campaign>>("/campaigns", data);
-    return response.data;
-  },
+    // Suggestions endpoints
+    getSuggestions: builder.query<any[], void>({
+      query: () => "/suggestions",
+      providesTags: ["Suggestion"],
+    }),
+    approveSuggestion: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/suggestions/${id}/approve`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Suggestion"],
+    }),
+    rejectSuggestion: builder.mutation<any, string>({
+      query: (id) => ({
+        url: `/suggestions/${id}/reject`,
+        method: "POST",
+      }),
+      invalidatesTags: ["Suggestion"],
+    }),
 
-  updateCampaign: async (id: string, data: any) => {
-    const response = await api.put<ApiResponse<Campaign>>(
-      `/campaigns/${id}`,
-      data
-    );
-    return response.data;
-  },
+    // Dashboard endpoints
+    getDashboardData: builder.query<any, void>({
+      query: () => "/dashboard",
+      providesTags: ["Campaign", "Performance", "Suggestion"],
+    }),
+  }),
+});
 
-  deleteCampaign: async (id: string) => {
-    const response = await api.delete<ApiResponse<void>>(`/campaigns/${id}`);
-    return response.data;
-  },
+// Export hooks for use in components
+export const {
+  // Auth hooks
+  useLoginMutation,
+  useRegisterMutation,
+  useGetProfileQuery,
 
-  getPerformance: async (id: string, startDate?: string, endDate?: string) => {
-    const params = new URLSearchParams();
-    if (startDate) params.append("startDate", startDate);
-    if (endDate) params.append("endDate", endDate);
+  // Campaign hooks
+  useGetCampaignsQuery,
+  useGetCampaignQuery,
+  useCreateCampaignMutation,
+  useUpdateCampaignMutation,
+  useDeleteCampaignMutation,
+  useGetCampaignPerformanceQuery,
 
-    const response = await api.get<ApiResponse<CampaignPerformance[]>>(
-      `/campaigns/${id}/performance?${params}`
-    );
-    return response.data;
-  },
-};
+  // Meta hooks
+  useGetMetaAccountsQuery,
+  useConnectMetaAccountMutation,
 
-// Meta Integration API
-export const metaAPI = {
-  connectAccount: async (data: {
-    adAccountId: string;
-    accessToken: string;
-  }) => {
-    const response = await api.post<ApiResponse<MetaAccount>>(
-      "/meta/connect",
-      data
-    );
-    return response.data;
-  },
+  // AI hooks
+  useGenerateAdCopyMutation,
+  useGetOptimizationSuggestionsMutation,
+  useChatCompletionMutation,
+  useRagQueryMutation,
 
-  getAccounts: async () => {
-    const response = await api.get<ApiResponse<MetaAccount[]>>(
-      "/meta/accounts"
-    );
-    return response.data;
-  },
-};
+  // Suggestions hooks
+  useGetSuggestionsQuery,
+  useApproveSuggestionMutation,
+  useRejectSuggestionMutation,
 
-// AI API
-export const aiAPI = {
-  generateAdCopy: async (data: {
-    product: string;
-    targetAudience: string;
-    objective: string;
-  }) => {
-    const response = await api.post<
-      ApiResponse<{ copy: string; suggestions: string[] }>
-    >("/ai/generate", data);
-    return response.data;
-  },
-
-  getOptimizationSuggestions: async (campaignId: string) => {
-    const response = await api.post<ApiResponse<Suggestion[]>>("/ai/optimize", {
-      campaignId,
-    });
-    return response.data;
-  },
-
-  chatCompletion: async (message: string) => {
-    const response = await api.post<
-      ApiResponse<{ response: string; suggestions?: Suggestion[] }>
-    >("/ai/chat", { message });
-    return response.data;
-  },
-
-  queryKnowledgeBase: async (query: string) => {
-    const response = await api.post<
-      ApiResponse<{ answer: string; sources: string[] }>
-    >("/ai/rag/query", { query });
-    return response.data;
-  },
-};
-
-// Suggestions API
-export const suggestionsAPI = {
-  getSuggestions: async (page = 1, limit = 10) => {
-    const response = await api.get<PaginatedResponse<Suggestion>>(
-      `/suggestions?page=${page}&limit=${limit}`
-    );
-    return response.data;
-  },
-
-  approveSuggestion: async (id: string) => {
-    const response = await api.post<ApiResponse<Suggestion>>(
-      `/suggestions/${id}/approve`
-    );
-    return response.data;
-  },
-
-  rejectSuggestion: async (id: string) => {
-    const response = await api.post<ApiResponse<Suggestion>>(
-      `/suggestions/${id}/reject`
-    );
-    return response.data;
-  },
-};
-
-// Dashboard API
-export const dashboardAPI = {
-  getStats: async () => {
-    const response = await api.get<ApiResponse<DashboardStats>>(
-      "/dashboard/stats"
-    );
-    return response.data;
-  },
-
-  getRecentCampaigns: async () => {
-    const response = await api.get<ApiResponse<Campaign[]>>(
-      "/dashboard/recent-campaigns"
-    );
-    return response.data;
-  },
-
-  getRecentSuggestions: async () => {
-    const response = await api.get<ApiResponse<Suggestion[]>>(
-      "/dashboard/recent-suggestions"
-    );
-    return response.data;
-  },
-};
-
-export default api;
+  // Dashboard hooks
+  useGetDashboardDataQuery,
+} = api;

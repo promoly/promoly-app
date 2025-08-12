@@ -13,8 +13,15 @@ import {
   UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { dashboardAPI } from "@/lib/api";
-import { DashboardStats, Campaign, Suggestion } from "@/types";
+import {
+  useGetDashboardDataQuery,
+  useGetCampaignsQuery,
+  useGetSuggestionsQuery,
+  useApproveSuggestionMutation,
+  useRejectSuggestionMutation,
+} from "@/lib/api";
+import { useAppDispatch } from "@/lib/hooks";
+import { addNotification } from "@/lib/slices/uiSlice";
 import { formatCurrency, formatNumber, formatPercentage } from "@/lib/utils";
 import {
   LineChart,
@@ -53,32 +60,61 @@ const itemVariants = {
 };
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [recentCampaigns, setRecentCampaigns] = useState<Campaign[]>([]);
-  const [recentSuggestions, setRecentSuggestions] = useState<Suggestion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const [statsRes, campaignsRes, suggestionsRes] = await Promise.all([
-          dashboardAPI.getStats(),
-          dashboardAPI.getRecentCampaigns(),
-          dashboardAPI.getRecentSuggestions(),
-        ]);
+  const { data: dashboardData, isLoading: dashboardLoading } =
+    useGetDashboardDataQuery();
+  const { data: campaigns = [] } = useGetCampaignsQuery();
+  const { data: suggestions = [] } = useGetSuggestionsQuery();
 
-        setStats(statsRes.data);
-        setRecentCampaigns(campaignsRes.data);
-        setRecentSuggestions(suggestionsRes.data);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const [approveSuggestion] = useApproveSuggestionMutation();
+  const [rejectSuggestion] = useRejectSuggestionMutation();
 
-    fetchDashboardData();
-  }, []);
+  const handleApproveSuggestion = async (id: string) => {
+    try {
+      await approveSuggestion(id).unwrap();
+      dispatch(
+        addNotification({
+          type: "success",
+          title: "Suggestion approved",
+          message: "The suggestion has been approved and will be applied.",
+          duration: 3000,
+        })
+      );
+    } catch (error) {
+      dispatch(
+        addNotification({
+          type: "error",
+          title: "Error",
+          message: "Failed to approve suggestion.",
+          duration: 5000,
+        })
+      );
+    }
+  };
+
+  const handleRejectSuggestion = async (id: string) => {
+    try {
+      await rejectSuggestion(id).unwrap();
+      dispatch(
+        addNotification({
+          type: "success",
+          title: "Suggestion rejected",
+          message: "The suggestion has been rejected.",
+          duration: 3000,
+        })
+      );
+    } catch (error) {
+      dispatch(
+        addNotification({
+          type: "error",
+          title: "Error",
+          message: "Failed to reject suggestion.",
+          duration: 5000,
+        })
+      );
+    }
+  };
 
   // Mock data for charts
   const performanceData = [
@@ -97,7 +133,7 @@ export default function DashboardPage() {
     { name: "Conversions", value: 25, color: "#F59E0B" },
   ];
 
-  if (loading) {
+  if (dashboardLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
@@ -142,7 +178,7 @@ export default function DashboardPage() {
                   Total Campaigns
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {stats?.totalCampaigns || 0}
+                  {dashboardData?.totalCampaigns || 0}
                 </p>
                 <p className="text-sm text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-4 h-4 mr-1" />
@@ -160,7 +196,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Spend</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(stats?.totalSpend || 0)}
+                  {formatCurrency(dashboardData?.totalSpend || 0)}
                 </p>
                 <p className="text-sm text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-4 h-4 mr-1" />
@@ -178,7 +214,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Leads</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatNumber(stats?.totalLeads || 0)}
+                  {formatNumber(dashboardData?.totalLeads || 0)}
                 </p>
                 <p className="text-sm text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-4 h-4 mr-1" />
@@ -196,7 +232,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Avg. CTR</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatPercentage(stats?.averageCtr || 0)}
+                  {formatPercentage(dashboardData?.averageCtr || 0)}
                 </p>
                 <p className="text-sm text-green-600 flex items-center mt-1">
                   <TrendingUp className="w-4 h-4 mr-1" />
@@ -288,7 +324,7 @@ export default function DashboardPage() {
               Recent Campaigns
             </h3>
             <div className="space-y-4">
-              {recentCampaigns.slice(0, 5).map((campaign) => (
+              {campaigns.slice(0, 5).map((campaign) => (
                 <div
                   key={campaign.id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
@@ -326,7 +362,7 @@ export default function DashboardPage() {
               AI Suggestions
             </h3>
             <div className="space-y-4">
-              {recentSuggestions.slice(0, 5).map((suggestion) => (
+              {suggestions.slice(0, 5).map((suggestion) => (
                 <div
                   key={suggestion.id}
                   className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200"
@@ -362,6 +398,7 @@ export default function DashboardPage() {
                         size="sm"
                         variant="outline"
                         className="text-green-600 border-green-200 hover:bg-green-50"
+                        onClick={() => handleApproveSuggestion(suggestion.id)}
                       >
                         Approve
                       </Button>
@@ -369,6 +406,7 @@ export default function DashboardPage() {
                         size="sm"
                         variant="outline"
                         className="text-red-600 border-red-200 hover:bg-red-50"
+                        onClick={() => handleRejectSuggestion(suggestion.id)}
                       >
                         Reject
                       </Button>

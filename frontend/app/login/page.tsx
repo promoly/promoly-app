@@ -5,38 +5,56 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { authAPI } from "@/lib/api";
+import { useLoginMutation } from "@/lib/api";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { setCredentials } from "@/lib/slices/authSlice";
+import { addNotification } from "@/lib/slices/uiSlice";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+  const [login, { isLoading }] = useLoginMutation();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    if (isAuthenticated) {
       router.push("/dashboard");
     }
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
     try {
-      const response = await authAPI.login({ email, password });
-      localStorage.setItem("token", response.data.token);
-      router.push("/dashboard");
-    } catch (error: any) {
-      setError(
-        error.response?.data?.message || "Login failed. Please try again."
+      const result = await login({ email, password }).unwrap();
+      dispatch(setCredentials(result));
+      dispatch(
+        addNotification({
+          type: "success",
+          title: "Welcome back!",
+          message: "You have been successfully logged in.",
+          duration: 3000,
+        })
       );
-    } finally {
-      setLoading(false);
+      router.push("/dashboard");
+    } catch (err: any) {
+      const errorMessage =
+        err.data?.message || "Login failed. Please try again.";
+      setError(errorMessage);
+      dispatch(
+        addNotification({
+          type: "error",
+          title: "Login failed",
+          message: errorMessage,
+          duration: 5000,
+        })
+      );
     }
   };
 
@@ -121,10 +139,10 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-3"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {isLoading ? "Signing in..." : "Sign in"}
             </Button>
           </form>
 
