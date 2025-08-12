@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Zap, Github } from "lucide-react";
-import { Eye, EyeOff, Mail, Lock, User, Zap, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRegisterMutation } from "@/lib/api";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
@@ -57,7 +56,8 @@ export default function RegisterPage() {
         addNotification({
           type: "success",
           title: "Account created!",
-          message: "Welcome to Promoly! Your account has been created successfully.",
+          message:
+            "Welcome to Promoly! Your account has been created successfully.",
           duration: 3000,
         })
       );
@@ -152,8 +152,6 @@ export default function RegisterPage() {
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                 <p className="text-red-400 text-sm">{error}</p>
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{error}</p>
               </div>
             )}
 
@@ -226,13 +224,11 @@ export default function RegisterPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent pr-12"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent pr-12"
                   placeholder="Create a password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
                 >
                   {showPassword ? (
@@ -259,13 +255,11 @@ export default function RegisterPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent pr-12"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent pr-12"
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
                 >
                   {showConfirmPassword ? (
@@ -281,14 +275,12 @@ export default function RegisterPage() {
               type="submit"
               disabled={isLoading}
               className="w-full bg-white text-black hover:bg-gray-100 py-3 font-medium mt-6"
-              className="w-full bg-white text-black hover:bg-gray-100 py-3 font-medium mt-6"
             >
               {isLoading ? "Creating account..." : "Create account"}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-400">
             <p className="text-sm text-gray-400">
               Already have an account?{" "}
               <a
@@ -377,7 +369,6 @@ export default function RegisterPage() {
           <div className="absolute bottom-1/4 left-1/3 w-24 h-24 border border-white rounded-full"></div>
           <div className="absolute top-1/2 left-1/2 w-16 h-16 border border-white rounded-full"></div>
         </div>
-      </div>
       </div>
     </div>
   );

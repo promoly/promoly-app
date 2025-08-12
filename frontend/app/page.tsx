@@ -17,15 +17,7 @@ import {
   Play,
   ChevronRight,
   Star,
-  Sparkles,
-  Target,
-  TrendingUp,
-  Bot,
-  Play,
-  ChevronRight,
-  Star,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
 
 export default function LandingPage() {
@@ -39,33 +31,6 @@ export default function LandingPage() {
       router.push("/dashboard");
     }
   }, [router]);
-
-  const quickActions = [
-    {
-      icon: Target,
-      title: "Create Campaign",
-      description: "Launch high-converting campaigns in minutes",
-      color: "from-green-500 to-emerald-600",
-    },
-    {
-      icon: BarChart3,
-      title: "Analyze Performance",
-      description: "Get AI-powered insights on your campaigns",
-      color: "from-blue-500 to-cyan-600",
-    },
-    {
-      icon: Sparkles,
-      title: "Generate Creative",
-      description: "AI creates compelling ad copy and visuals",
-      color: "from-purple-500 to-pink-600",
-    },
-    {
-      icon: TrendingUp,
-      title: "Optimize Budget",
-      description: "Maximize ROI with intelligent budget allocation",
-      color: "from-orange-500 to-red-600",
-    },
-  ];
 
   const quickActions = [
     {
@@ -123,9 +88,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Navigation */}
-      <nav className="relative z-50 bg-black/20 backdrop-blur-xl border-b border-white/10">
       <nav className="relative z-50 bg-black/20 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -181,23 +144,12 @@ export default function LandingPage() {
               <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0">
                 Sign Up
               </Button>
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0">
-                Sign Up
-              </Button>
             </div>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-32">
-        {/* Background Effects */}
-        <div className="absolute inset-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-500/20 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <section className="relative overflow-hidden pt-20 pb-32">
         {/* Background Effects */}
         <div className="absolute inset-0">
@@ -226,14 +178,7 @@ export default function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight"
             >
-              Promoly, create campaigns
-              <br />
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                in minutes not hours!
-              </span>
               Promoly, create campaigns
               <br />
               <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -241,12 +186,9 @@ export default function LandingPage() {
               </span>
             </motion.h1>
 
-
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed"
               transition={{ duration: 0.8, delay: 0.4 }}
               className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed"
             >
@@ -256,28 +198,20 @@ export default function LandingPage() {
             </motion.p>
 
             {/* CTA Section */}
-
-            {/* CTA Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
               className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
-              transition={{ duration: 0.8, delay: 0.6 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16"
             >
-              <div className="flex w-full max-w-md bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden">
               <div className="flex w-full max-w-md bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl overflow-hidden">
                 <input
                   type="email"
                   placeholder="Enter your email to get started"
-                  placeholder="Enter your email to get started"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="flex-1 px-4 py-4 bg-transparent text-white placeholder-gray-400 focus:outline-none"
-                  className="flex-1 px-4 py-4 bg-transparent text-white placeholder-gray-400 focus:outline-none"
                 />
-                <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 rounded-none rounded-r-xl px-6">
                 <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 rounded-none rounded-r-xl px-6">
                   <ArrowRight className="w-5 h-5" />
                 </Button>
@@ -359,11 +293,8 @@ export default function LandingPage() {
 
       {/* Features Section */}
       <section className="py-24 bg-black/20">
-      <section className="py-24 bg-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">
-              The future of advertising is here
             <h2 className="text-4xl font-bold text-white mb-4">
               The future of advertising is here
             </h2>
@@ -374,7 +305,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -382,18 +312,13 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-300"
-                className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-300"
               >
-                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
-                  <feature.icon className="w-6 h-6 text-white" />
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4">
                   <feature.icon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-white mb-2">
-                <h3 className="text-xl font-semibold text-white mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-gray-300">{feature.description}</p>
                 <p className="text-gray-300">{feature.description}</p>
               </motion.div>
             ))}
@@ -419,10 +344,7 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-purple-900/50 to-pink-900/50">
-      <section className="py-24 bg-gradient-to-r from-purple-900/50 to-pink-900/50">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to revolutionize your campaigns?
           <h2 className="text-4xl font-bold text-white mb-4">
             Ready to revolutionize your campaigns?
           </h2>
@@ -442,13 +364,11 @@ export default function LandingPage() {
               <Play className="w-5 h-5 mr-2" />
               Watch Demo
             </Button>
-            </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-black/40 border-t border-white/10 py-12">
       <footer className="bg-black/40 border-t border-white/10 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-8">
@@ -459,19 +379,11 @@ export default function LandingPage() {
                 </div>
                 <span className="text-xl font-bold text-white">Promoly</span>
               </div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-white">Promoly</span>
-              </div>
               <p className="text-gray-400">
-                AI-powered ads management platform for the modern marketer.
                 AI-powered ads management platform for the modern marketer.
               </p>
             </div>
             <div>
-              <h4 className="font-semibold text-white mb-4">Product</h4>
               <h4 className="font-semibold text-white mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
@@ -493,7 +405,6 @@ export default function LandingPage() {
             </div>
             <div>
               <h4 className="font-semibold text-white mb-4">Company</h4>
-              <h4 className="font-semibold text-white mb-4">Company</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <a href="#" className="hover:text-white transition-colors">
@@ -514,7 +425,6 @@ export default function LandingPage() {
             </div>
             <div>
               <h4 className="font-semibold text-white mb-4">Support</h4>
-              <h4 className="font-semibold text-white mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
                 <li>
                   <a href="#" className="hover:text-white transition-colors">
@@ -534,7 +444,6 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/10 mt-8 pt-8 text-center text-gray-400">
           <div className="border-t border-white/10 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2024 Promoly. All rights reserved.</p>
           </div>
