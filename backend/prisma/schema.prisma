@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String?
+  lastName  String?
+  role      UserRole @default(USER)
+  plan      Plan     @default(FREE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  metaAccounts MetaAccount[]
+  campaigns    Campaign[]
+  suggestions  Suggestion[]
+
+  @@map("users")
+}
+
+model MetaAccount {
+  id           String   @id @default(cuid())
+  userId       String
+  adAccountId  String
+  accessToken  String
+  accountName  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns Campaign[]
+
+  @@map("meta_accounts")
+}
+
+model Campaign {
+  id              String           @id @default(cuid())
+  userId          String
+  metaAccountId   String?
+  metaCampaignId  String?          @unique
+  name            String
+  objective       CampaignObjective
+  status          CampaignStatus   @default(DRAFT)
+  budget          Float
+  budgetType      BudgetType       @default(DAILY)
+  targetAudience  Json?
+  adCreative      Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Relations
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metaAccount  MetaAccount?   @relation(fields: [metaAccountId], references: [id])
+  performances CampaignPerformance[]
+  suggestions  Suggestion[]
+
+  @@map("campaigns")
+}
+
+model CampaignPerformance {
+  id          String   @id @default(cuid())
+  campaignId  String
+  date        DateTime
+  reach       Int      @default(0)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  leads       Int      @default(0)
+  spend       Float    @default(0)
+  cpm         Float    @default(0)
+  cpc         Float    @default(0)
+  cpl         Float    @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, date])
+  @@map("campaign_performances")
+}
+
+model Suggestion {
+  id          String           @id @default(cuid())
+  userId      String
+  campaignId  String?
+  type        SuggestionType
+  title       String
+  description String
+  action      Json?
+  status      SuggestionStatus @default(PENDING)
+  aiGenerated Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+
+  @@map("suggestions")
+}
+
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum CampaignObjective {
+  AWARENESS
+  CONSIDERATION
+  CONVERSIONS
+  LEADS
+  SALES
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum BudgetType {
+  DAILY
+  LIFETIME
+}
+
+enum SuggestionType {
+  BUDGET_OPTIMIZATION
+  AUDIENCE_TARGETING
+  CREATIVE_IMPROVEMENT
+  BID_ADJUSTMENT
+  CAMPAIGN_STRUCTURE
+}
+
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  IMPLEMENTED
+}
